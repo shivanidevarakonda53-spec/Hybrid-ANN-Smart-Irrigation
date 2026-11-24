@@ -1,0 +1,278 @@
+
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Field Management - Smart Irrigation</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f7f4;
+            color: #26352a;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 25px;
+        }
+
+        h1 {
+            color: #1c5632;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #00000012;
+            margin-bottom: 25px;
+            overflow-x: auto;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 11px;
+            margin-top: 7px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            background: white;
+        }
+
+        button {
+            margin-top: 22px;
+            padding: 12px 22px;
+            background: #247344;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #185b34;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            min-width: 650px;
+        }
+
+        th, td {
+            padding: 13px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #e8f2e9;
+            color: #1c5632;
+        }
+
+        tr:hover {
+            background: #f5faf5;
+        }
+
+        #message {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Field Management</h1>
+
+    <p>Register and manage your agricultural fields.</p>
+
+    <!-- ADD NEW FIELD -->
+
+    <div class="card">
+
+        <h2>Add New Field</h2>
+
+        <form id="fieldForm">
+
+            <label>Select Farmer</label>
+
+            <select id="farmerId" required>
+                <option value="">-- Select Farmer --</option>
+
+                <option th:each="farmer : ${farmers}"
+                        th:value="${farmer.id}"
+                        th:text="${farmer.fullName}">
+                </option>
+            </select>
+
+            <label>Field Name</label>
+            <input type="text" id="fieldName" required>
+
+            <label>Location</label>
+            <input type="text" id="location" required>
+
+            <label>Crop Name</label>
+            <input type="text" id="cropName" required>
+
+            <label>Land Area (acres)</label>
+            <input type="number"
+                   id="landArea"
+                   min="0.01"
+                   step="any"
+                   required>
+
+            <label>Soil Type</label>
+            <input type="text" id="soilType" required>
+
+            <button type="submit">Save Field</button>
+
+        </form>
+
+        <p id="message"></p>
+
+    </div>
+
+
+    <!-- REGISTERED FIELDS -->
+
+    <div class="card">
+
+        <h2>My Registered Fields</h2>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Field ID</th>
+                    <th>Field Name</th>
+                    <th>Location</th>
+                    <th>Crop</th>
+                    <th>Area (Acres)</th>
+                    <th>Soil Type</th>
+                    <th>Farmer</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr th:each="field : ${fields}">
+
+                    <td th:text="${field.id}"></td>
+
+                    <td th:text="${field.fieldName}"></td>
+
+                    <td th:text="${field.location}"></td>
+
+                    <td th:text="${field.cropName}"></td>
+
+                    <td th:text="${field.landArea}"></td>
+
+                    <td th:text="${field.soilType}"></td>
+
+                    <td th:text="${field.farmer != null ? field.farmer.fullName : 'N/A'}"></td>
+
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(fields)}">
+                    <td colspan="7" class="empty-message">
+                        No fields registered yet.
+                    </td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<!-- JAVASCRIPT -->
+
+<script>
+
+document.getElementById("fieldForm").addEventListener("submit", async function(event) {
+
+    event.preventDefault();
+
+    const farmerId = document.getElementById("farmerId").value;
+
+    const field = {
+        fieldName: document.getElementById("fieldName").value,
+        location: document.getElementById("location").value,
+        cropName: document.getElementById("cropName").value,
+        landArea: Number(document.getElementById("landArea").value),
+        soilType: document.getElementById("soilType").value
+    };
+
+    const message = document.getElementById("message");
+
+    try {
+
+        const response = await fetch("/api/fields/" + farmerId, {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify(field)
+
+        });
+
+        if (response.ok) {
+
+            message.style.color = "green";
+            message.textContent = "Field saved successfully!";
+
+            document.getElementById("fieldForm").reset();
+
+            // Reload to display the newly saved field
+            setTimeout(function() {
+                window.location.reload();
+            }, 700);
+
+        } else {
+
+            message.style.color = "red";
+            message.textContent = "Unable to save field. Please check the details and Farmer ID.";
+
+        }
+
+    } catch (error) {
+
+        message.style.color = "red";
+        message.textContent = "Server connection error.";
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>

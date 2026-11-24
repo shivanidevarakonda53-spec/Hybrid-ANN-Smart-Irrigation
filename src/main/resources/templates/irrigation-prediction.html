@@ -1,0 +1,1296 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Irrigation Prediction</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px;
+            font-family: Arial, sans-serif;
+            background: #f4f7f5;
+            color: #26352c;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        h1, h2 {
+            color: #176b3a;
+        }
+
+        .subtitle {
+            color: #68766d;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            margin-bottom: 22px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        input, select {
+            padding: 12px;
+            border: 1px solid #ccd8cf;
+            border-radius: 7px;
+            font-size: 15px;
+            width: 100%;
+        }
+
+        input[readonly] {
+            background: #f0f4f1;
+        }
+
+        button {
+            background: #198754;
+            color: white;
+            border: none;
+            padding: 13px 22px;
+            border-radius: 7px;
+            font-size: 15px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background: #126b40;
+        }
+
+        button:disabled {
+            background: #888;
+            cursor: not-allowed;
+        }
+
+        .test-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .test-buttons button {
+            margin-top: 0;
+        }
+
+        .test-low {
+            background: #198754;
+        }
+
+        .test-medium {
+            background: #b8860b;
+        }
+
+        .test-high {
+            background: #c0392b;
+        }
+
+        .test-note {
+            background: #f0f5f1;
+            padding: 14px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .status {
+            color: #198754;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        .note {
+            color: #68766d;
+            font-size: 13px;
+            margin-top: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #eaf3ed;
+            color: #176b3a;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        .result {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #eaf3ed;
+            border: 1px solid #b7d9c1;
+        }
+
+        .result h3 {
+            color: #176b3a;
+            margin-top: 0;
+        }
+
+        .result-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #198754;
+            margin-bottom: 8px;
+        }
+
+        .result-explanation {
+            font-size: 15px;
+            line-height: 1.6;
+            margin-top: 8px;
+        }
+
+        .result.low {
+            background: #eaf3ed;
+            border-color: #9bc9a8;
+        }
+
+        .result.low .result-value {
+            color: #198754;
+        }
+
+        .result.medium {
+            background: #fff8e6;
+            border-color: #e8c96a;
+        }
+
+        .result.medium .result-value {
+            color: #9a6b00;
+        }
+
+        .result.high {
+            background: #fff0ed;
+            border-color: #e6a59a;
+        }
+
+        .result.high .result-value {
+            color: #c0392b;
+        }
+
+        @media (max-width: 650px) {
+            body {
+                padding: 15px;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Irrigation Prediction</h1>
+
+    <p class="subtitle">
+        Get intelligent irrigation recommendations for your registered fields.
+    </p>
+
+    <!-- FIELD INFORMATION -->
+    <div class="card">
+
+        <h2>Field Information</h2>
+
+        <div class="grid">
+
+            <div class="form-group">
+                <label>Select Registered Field</label>
+                <select id="fieldSelect" onchange="loadFieldDetails()">
+                    <option value="">Loading registered fields...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Crop Type</label>
+                <input type="text" id="cropType" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Soil Type</label>
+                <input type="text" id="soilType" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Land Area (acres)</label>
+                <input type="number" id="landArea" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Field Location</label>
+                <input type="text" id="fieldLocation" readonly>
+            </div>
+
+        </div>
+
+        <p id="fieldStatus" class="status"></p>
+
+    </div>
+
+
+    <!-- ENVIRONMENTAL CONDITIONS -->
+    <div class="card">
+
+        <h2>Environmental Conditions</h2>
+
+        <div class="grid">
+
+            <div class="form-group">
+                <label>Temperature (°C)</label>
+                <input type="number" id="temperature" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Humidity (%)</label>
+                <input type="number" id="humidity" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Current Precipitation (mm)</label>
+                <input type="number" id="rainfall" readonly>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- LIVE WEATHER -->
+    <div class="card">
+
+        <h2>Live Weather Information</h2>
+
+        <p id="weatherStatus">Loading weather data...</p>
+
+        <div class="grid">
+
+            <div>
+                <label>Wind Speed</label>
+                <p><strong id="windSpeed">--</strong> km/h</p>
+            </div>
+
+            <div>
+                <label>Weather Update Time</label>
+                <p id="weatherTime">--</p>
+            </div>
+
+        </div>
+
+        <button type="button" onclick="loadWeather()">
+            Refresh Weather
+        </button>
+
+    </div>
+
+
+    <!-- IRRIGATION HISTORY FORM -->
+    <div class="card">
+
+        <h2>Irrigation History</h2>
+
+        <p>Enter details about the previous irrigation activity.</p>
+
+        <div class="grid">
+
+            <div class="form-group">
+                <label>Last Irrigation Date</label>
+                <input type="date" id="lastIrrigationDate">
+            </div>
+
+            <div class="form-group">
+                <label>Water Applied (mm)</label>
+                <input type="number" id="waterApplied"
+                       min="0" step="any"
+                       placeholder="Example: 30">
+            </div>
+
+            <div class="form-group">
+                <label>Crop Growth Stage</label>
+                <select id="growthStage">
+                    <option value="">Select growth stage</option>
+                    <option value="Initial">Initial Stage</option>
+                    <option value="Development">Development Stage</option>
+                    <option value="Vegetative">Vegetative Stage</option>
+                    <option value="Flowering">Flowering Stage</option>
+                    <option value="Maturity">Maturity Stage</option>
+                </select>
+            </div>
+
+        </div>
+
+        <p class="note">
+            Enter the approximate water depth applied during
+            the previous irrigation.
+        </p>
+
+        <button type="button" onclick="saveIrrigationHistory()">
+            Save Irrigation History
+        </button>
+
+        <p id="historyStatus" class="status"></p>
+
+    </div>
+
+
+    <!-- SAVED HISTORY -->
+    <div class="card">
+
+        <h2>Saved Irrigation Records</h2>
+
+        <div class="table-wrapper">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Water Applied (mm)</th>
+                        <th>Growth Stage</th>
+                    </tr>
+                </thead>
+
+                <tbody id="historyTable">
+                    <tr>
+                        <td colspan="3">Select a field to view records.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- ANN PREDICTION -->
+    <div class="card">
+
+        <h2>Hybrid ANN Irrigation Recommendation</h2>
+
+        <p>
+            The Hybrid ANN model analyses weather conditions,
+            crop information, field area and previous irrigation
+            history to predict irrigation requirements.
+        </p>
+
+        <button type="button" id="predictButton"
+                onclick="predictIrrigation()">
+            Predict Irrigation
+        </button>
+
+        <button type="button" id="testButton"
+                onclick="showTestOptions()">
+            Test ANN Model
+        </button>
+
+        <!-- DATASET TEST OPTIONS -->
+        <div id="testOptions" style="display:none;">
+
+            <h3>ANN Model Testing</h3>
+
+            <p>
+                Select a sample from the dataset to test
+                the trained ANN model.
+            </p>
+
+            <div class="test-buttons">
+
+                <button type="button"
+                        class="test-low"
+                        onclick="runDatasetTest('Low')">
+                    Test Low
+                </button>
+
+                <button type="button"
+                        class="test-medium"
+                        onclick="runDatasetTest('Medium')">
+                    Test Medium
+                </button>
+
+                <button type="button"
+                        class="test-high"
+                        onclick="runDatasetTest('High')">
+                    Test High
+                </button>
+
+            </div>
+
+            <div class="test-note">
+                <strong>Testing note:</strong>
+                These are sample records from the training dataset.
+                They are used only for model testing and are not
+                real-time field measurements or irrigation advice.
+            </div>
+
+        </div>
+
+        <p id="predictionStatus" class="status"></p>
+
+        <div id="predictionResult" class="result">
+
+            <h3>ANN Prediction Result</h3>
+
+            <p>Predicted Irrigation Requirement:</p>
+
+            <p id="predictionValue" class="result-value"></p>
+
+            <p id="predictionExplanation" class="result-explanation"></p>
+
+            <h3>Input Details Used by ANN Model</h3>
+
+            <div class="table-wrapper">
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Input Feature</th>
+                            <th>Value Used</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="predictionInputsTable">
+                        <tr>
+                            <td colspan="2">
+                                Input details will appear after prediction.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+
+            <p class="note">
+                This is a model classification (Low, Medium or High),
+                not a measured soil moisture value or a calculated
+                water quantity.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+let registeredFields = [];
+let latestIrrigationRecord = null;
+
+
+// INPUT LABELS
+
+const inputLabels = {
+    Temperature_C: "Temperature",
+    Humidity: "Humidity",
+    Rainfall_mm: "Current Precipitation",
+    Wind_Speed_kmh: "Wind Speed",
+    Crop_Type: "Crop Type",
+    Crop_Growth_Stage: "Crop Growth Stage",
+    Field_Area_hectare: "Field Area",
+    Previous_Irrigation_mm: "Previous Irrigation"
+};
+
+
+// INPUT UNITS
+
+const inputUnits = {
+    Temperature_C: " °C",
+    Humidity: " %",
+    Rainfall_mm: " mm",
+    Wind_Speed_kmh: " km/h",
+    Field_Area_hectare: " hectares",
+    Previous_Irrigation_mm: " mm"
+};
+
+
+// LOAD REGISTERED FIELDS
+
+async function loadRegisteredFields() {
+
+    const select = document.getElementById("fieldSelect");
+    const status = document.getElementById("fieldStatus");
+
+    try {
+
+        const response = await fetch("/api/fields");
+
+        if (!response.ok) {
+            throw new Error("Could not fetch registered fields");
+        }
+
+        registeredFields = await response.json();
+
+        select.innerHTML =
+            '<option value="">Select a field</option>';
+
+        registeredFields.forEach(field => {
+
+            const option = document.createElement("option");
+
+            option.value = field.id;
+
+            option.textContent =
+                field.fieldName + " - " + field.cropName;
+
+            select.appendChild(option);
+
+        });
+
+        status.textContent = registeredFields.length === 0
+            ? "No registered fields found."
+            : registeredFields.length + " registered field(s) loaded.";
+
+    } catch (error) {
+
+        status.textContent =
+            "Unable to load fields: " + error.message;
+
+    }
+
+}
+
+
+// DISPLAY FIELD DETAILS
+
+function loadFieldDetails() {
+
+    const selectedId =
+        document.getElementById("fieldSelect").value;
+
+    const field = registeredFields.find(
+        item => String(item.id) === selectedId
+    );
+
+    latestIrrigationRecord = null;
+
+    document.getElementById("predictionResult").style.display = "none";
+    document.getElementById("predictionStatus").textContent = "";
+
+    if (!field) {
+
+        document.getElementById("cropType").value = "";
+        document.getElementById("soilType").value = "";
+        document.getElementById("landArea").value = "";
+        document.getElementById("fieldLocation").value = "";
+
+        document.getElementById("historyTable").innerHTML =
+            '<tr><td colspan="3">Select a field to view records.</td></tr>';
+
+        return;
+    }
+
+    document.getElementById("cropType").value =
+        field.cropName || "";
+
+    document.getElementById("soilType").value =
+        field.soilType || "";
+
+    document.getElementById("landArea").value =
+        field.landArea ?? "";
+
+    document.getElementById("fieldLocation").value =
+        field.location || "";
+
+    loadIrrigationHistory();
+
+}
+
+
+// LOAD WEATHER DATA
+
+async function loadWeather() {
+
+    const status =
+        document.getElementById("weatherStatus");
+
+    status.textContent = "Loading weather data...";
+
+    try {
+
+        const response = await fetch("/api/weather");
+
+        if (!response.ok) {
+            throw new Error("Weather API connection failed");
+        }
+
+        const data = await response.json();
+
+        const current = data.current;
+
+        if (!current) {
+            throw new Error("Weather information unavailable");
+        }
+
+        document.getElementById("temperature").value =
+            current.temperature_2m ?? "";
+
+        document.getElementById("humidity").value =
+            current.relative_humidity_2m ?? "";
+
+        document.getElementById("rainfall").value =
+            current.precipitation ?? "";
+
+        document.getElementById("windSpeed").textContent =
+            current.wind_speed_10m ?? "--";
+
+        document.getElementById("weatherTime").textContent =
+            current.time ?? "--";
+
+        status.textContent =
+            "Weather data loaded successfully!";
+
+    } catch (error) {
+
+        status.textContent =
+            "Unable to load weather: " + error.message;
+
+    }
+
+}
+
+
+// SAVE IRRIGATION HISTORY
+
+async function saveIrrigationHistory() {
+
+    const fieldId =
+        document.getElementById("fieldSelect").value;
+
+    const status =
+        document.getElementById("historyStatus");
+
+    const date =
+        document.getElementById("lastIrrigationDate").value;
+
+    const water =
+        document.getElementById("waterApplied").value;
+
+    const stage =
+        document.getElementById("growthStage").value;
+
+    if (!fieldId) {
+        status.textContent = "Please select a registered field.";
+        return;
+    }
+
+    if (!date && !water && !stage) {
+        status.textContent =
+            "Please enter at least one irrigation detail.";
+        return;
+    }
+
+    if (water && Number(water) < 0) {
+        status.textContent =
+            "Water applied cannot be negative.";
+        return;
+    }
+
+    const history = {
+        lastIrrigationDate: date || null,
+        waterApplied: water === "" ? null : Number(water),
+        growthStage: stage || null
+    };
+
+    status.textContent = "Saving irrigation history...";
+
+    try {
+
+        const response = await fetch(
+            "/api/irrigation-history/" + fieldId,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(history)
+            }
+        );
+
+        if (!response.ok) {
+            const message = await response.text();
+            throw new Error(message || "Could not save record");
+        }
+
+        status.textContent =
+            "Irrigation history saved successfully!";
+
+        document.getElementById("lastIrrigationDate").value = "";
+        document.getElementById("waterApplied").value = "";
+        document.getElementById("growthStage").value = "";
+
+        await loadIrrigationHistory();
+
+    } catch (error) {
+
+        status.textContent =
+            "Error saving history: " + error.message;
+
+    }
+
+}
+
+
+// LOAD SAVED IRRIGATION HISTORY
+
+async function loadIrrigationHistory() {
+
+    const fieldId =
+        document.getElementById("fieldSelect").value;
+
+    const table =
+        document.getElementById("historyTable");
+
+    latestIrrigationRecord = null;
+
+    if (!fieldId) {
+        return;
+    }
+
+    try {
+
+        const response = await fetch(
+            "/api/irrigation-history/" + fieldId
+        );
+
+        if (!response.ok) {
+            throw new Error("Could not load irrigation records");
+        }
+
+        const records = await response.json();
+
+        table.innerHTML = "";
+
+        if (records.length === 0) {
+
+            table.innerHTML =
+                '<tr><td colspan="3">No irrigation records found.</td></tr>';
+
+            return;
+        }
+
+        latestIrrigationRecord = records[0];
+
+        records.forEach(record => {
+
+            const row = document.createElement("tr");
+
+            const dateCell = document.createElement("td");
+            dateCell.textContent =
+                record.lastIrrigationDate || "-";
+
+            const waterCell = document.createElement("td");
+            waterCell.textContent =
+                record.waterApplied ?? "-";
+
+            const stageCell = document.createElement("td");
+            stageCell.textContent =
+                record.growthStage || "-";
+
+            row.appendChild(dateCell);
+            row.appendChild(waterCell);
+            row.appendChild(stageCell);
+
+            table.appendChild(row);
+
+        });
+
+    } catch (error) {
+
+        latestIrrigationRecord = null;
+
+        table.innerHTML =
+            '<tr><td colspan="3">Unable to load irrigation records.</td></tr>';
+
+    }
+
+}
+
+
+// DISPLAY ANN RESULT AND INPUT DETAILS
+
+function displayPredictionResult(data, features) {
+
+    const resultBox =
+        document.getElementById("predictionResult");
+
+    const resultValue =
+        document.getElementById("predictionValue");
+
+    const resultExplanation =
+        document.getElementById("predictionExplanation");
+
+    const predictionInputsTable =
+        document.getElementById("predictionInputsTable");
+
+    const irrigationNeed =
+        String(data.irrigation_need).trim();
+
+    resultValue.textContent = irrigationNeed;
+
+    // DISPLAY INPUT VALUES
+
+    predictionInputsTable.innerHTML = "";
+
+    Object.entries(features).forEach(([key, value]) => {
+
+        const row = document.createElement("tr");
+
+        const labelCell = document.createElement("td");
+        labelCell.textContent = inputLabels[key] || key;
+
+        const valueCell = document.createElement("td");
+
+        const unit = inputUnits[key] || "";
+
+        valueCell.textContent =
+            String(value) + unit;
+
+        row.appendChild(labelCell);
+        row.appendChild(valueCell);
+
+        predictionInputsTable.appendChild(row);
+
+    });
+
+
+    // CLASSIFICATION EXPLANATIONS
+
+    const explanations = {
+
+        low:
+            "The model classifies the irrigation need as LOW. This indicates a comparatively lower estimated irrigation requirement based on the supplied inputs. Check actual field conditions before deciding whether to irrigate.",
+
+        medium:
+            "The model classifies the irrigation need as MEDIUM. This indicates a moderate estimated irrigation requirement based on the supplied inputs. Consider the crop stage, recent irrigation and actual field conditions before deciding.",
+
+        high:
+            "The model classifies the irrigation need as HIGH. This indicates a comparatively higher estimated irrigation requirement based on the supplied inputs. Check the field and local conditions before applying water."
+
+    };
+
+    const predictionKey = irrigationNeed.toLowerCase();
+
+    resultExplanation.textContent =
+        explanations[predictionKey] ||
+        "The model returned a classification that is not recognized by this page.";
+
+    resultBox.classList.remove("low", "medium", "high");
+
+    if (explanations[predictionKey]) {
+        resultBox.classList.add(predictionKey);
+    }
+
+    resultBox.style.display = "block";
+
+}
+
+
+// SEND INPUTS TO ANN API
+
+async function callAnnModel(features) {
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/predict",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json",
+                "accept": "application/json"
+            },
+
+            body: JSON.stringify({
+                features: features
+            })
+        }
+    );
+
+    if (!response.ok) {
+
+        const errorData = await response.text();
+
+        throw new Error(
+            "Prediction API error: " + errorData
+        );
+
+    }
+
+    const data = await response.json();
+
+    if (!data.irrigation_need) {
+        throw new Error("Prediction result not received.");
+    }
+
+    return data;
+
+}
+
+
+// NORMAL FIELD PREDICTION
+
+async function predictIrrigation() {
+
+    const status =
+        document.getElementById("predictionStatus");
+
+    const predictButton =
+        document.getElementById("predictButton");
+
+    const resultBox =
+        document.getElementById("predictionResult");
+
+    resultBox.style.display = "none";
+
+    const fieldId =
+        document.getElementById("fieldSelect").value;
+
+    if (!fieldId) {
+        status.textContent = "Please select a registered field.";
+        return;
+    }
+
+    const field = registeredFields.find(
+        item => String(item.id) === fieldId
+    );
+
+    if (!field) {
+        status.textContent = "Field information not found.";
+        return;
+    }
+
+    // CHECK WEATHER
+
+    const temperature =
+        document.getElementById("temperature").value;
+
+    const humidity =
+        document.getElementById("humidity").value;
+
+    const rainfall =
+        document.getElementById("rainfall").value;
+
+    const windSpeed =
+        document.getElementById("windSpeed").textContent;
+
+    if (
+        temperature === "" ||
+        humidity === "" ||
+        rainfall === "" ||
+        windSpeed === "--"
+    ) {
+        status.textContent =
+            "Please wait until weather information is loaded.";
+        return;
+    }
+
+    // CHECK FIELD DETAILS
+
+    if (
+        !field.cropName ||
+        field.landArea === null ||
+        field.landArea === undefined
+    ) {
+        status.textContent =
+            "Crop type or land area is missing.";
+        return;
+    }
+
+    // CHECK IRRIGATION HISTORY
+
+    if (
+        !latestIrrigationRecord ||
+        latestIrrigationRecord.waterApplied === null ||
+        latestIrrigationRecord.waterApplied === undefined ||
+        !latestIrrigationRecord.growthStage
+    ) {
+        status.textContent =
+            "Please save irrigation history with water applied and crop growth stage before prediction.";
+        return;
+    }
+
+    const areaInHectares =
+        Number(field.landArea) * 0.404686;
+
+    // PREPARE 8 ANN FEATURES
+
+    const features = {
+
+        Temperature_C: Number(temperature),
+
+        Humidity: Number(humidity),
+
+        Rainfall_mm: Number(rainfall),
+
+        Wind_Speed_kmh: Number(windSpeed),
+
+        Crop_Type: String(field.cropName).trim(),
+
+        Crop_Growth_Stage:
+            String(latestIrrigationRecord.growthStage).trim(),
+
+        Field_Area_hectare: areaInHectares,
+
+        Previous_Irrigation_mm:
+            Number(latestIrrigationRecord.waterApplied)
+
+    };
+
+    status.textContent =
+        "ANN model is analysing your field...";
+
+    predictButton.disabled = true;
+
+    try {
+
+        const data = await callAnnModel(features);
+
+        displayPredictionResult(data, features);
+
+        status.textContent =
+            "ANN prediction completed successfully!";
+
+    } catch (error) {
+
+        status.textContent =
+            "Prediction failed: " + error.message;
+
+    } finally {
+
+        predictButton.disabled = false;
+
+    }
+
+}
+
+
+// SHOW OR HIDE TEST OPTIONS
+
+function showTestOptions() {
+
+    const options =
+        document.getElementById("testOptions");
+
+    if (options.style.display === "none") {
+        options.style.display = "block";
+    } else {
+        options.style.display = "none";
+    }
+
+}
+
+
+// TEST ANN USING DATASET EXAMPLES
+
+async function runDatasetTest(testClass) {
+
+    const status =
+        document.getElementById("predictionStatus");
+
+    const resultBox =
+        document.getElementById("predictionResult");
+
+    const testButton =
+        document.getElementById("testButton");
+
+    resultBox.style.display = "none";
+
+    let features;
+
+    // ACTUAL DATASET SAMPLE FOR LOW
+
+    if (testClass === "Low") {
+
+        features = {
+
+            Temperature_C: 1.90,
+
+            Humidity: 31.19,
+
+            Rainfall_mm: 1167.70,
+
+            Wind_Speed_kmh: 1.97,
+
+            Crop_Type: "Wheat",
+
+            Crop_Growth_Stage: "Vegetative",
+
+            Field_Area_hectare: 4.73,
+
+            Previous_Irrigation_mm: 1.98
+
+        };
+
+    }
+
+    // ACTUAL DATASET SAMPLE FOR MEDIUM
+
+    else if (testClass === "Medium") {
+
+        features = {
+
+            Temperature_C: 36.50,
+
+            Humidity: 26.01,
+
+            Rainfall_mm: 831.28,
+
+            Wind_Speed_kmh: 16.82,
+
+            Crop_Type: "Maize",
+
+            Crop_Growth_Stage: "Flowering",
+
+            Field_Area_hectare: 12.22,
+
+            Previous_Irrigation_mm: 33.56
+
+        };
+
+    }
+
+    // ACTUAL DATASET SAMPLE FOR HIGH
+
+    else if (testClass === "High") {
+
+        features = {
+
+            Temperature_C: 35.21,
+
+            Humidity: 73.29,
+
+            Rainfall_mm: 1943.89,
+
+            Wind_Speed_kmh: 11.17,
+
+            Crop_Type: "Rice",
+
+            Crop_Growth_Stage: "Flowering",
+
+            Field_Area_hectare: 13.11,
+
+            Previous_Irrigation_mm: 74.35
+
+        };
+
+    }
+
+    else {
+
+        status.textContent = "Invalid test selection.";
+        return;
+
+    }
+
+    status.textContent =
+        "Testing ANN model using the " + testClass +
+        " dataset example...";
+
+    testButton.disabled = true;
+
+    try {
+
+        const data = await callAnnModel(features);
+
+        displayPredictionResult(data, features);
+
+        const actualClass = testClass.toLowerCase();
+
+        const predictedClass =
+            String(data.irrigation_need).toLowerCase();
+
+        if (actualClass === predictedClass) {
+
+            status.textContent =
+                "Test completed! Actual class: " +
+                testClass +
+                ". Predicted class: " +
+                data.irrigation_need +
+                ". Correct prediction.";
+
+        } else {
+
+            status.textContent =
+                "Test completed. Actual class: " +
+                testClass +
+                ". Predicted class: " +
+                data.irrigation_need +
+                ". The prediction differs from the dataset label.";
+
+        }
+
+    } catch (error) {
+
+        status.textContent =
+            "ANN test failed: " + error.message;
+
+    } finally {
+
+        testButton.disabled = false;
+
+    }
+
+}
+
+
+// INITIALIZE PAGE
+
+document.addEventListener("DOMContentLoaded", function() {
+
+    loadRegisteredFields();
+
+    loadWeather();
+
+});
+
+</script>
+
+</body>
+</html>

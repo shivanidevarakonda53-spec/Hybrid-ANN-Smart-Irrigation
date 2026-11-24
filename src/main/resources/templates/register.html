@@ -1,0 +1,119 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmer Registration - Smart Irrigation</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f4;
+            margin: 0;
+            padding: 40px 15px;
+        }
+
+        .container {
+            max-width: 550px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        h2 {
+            color: #126b48;
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin-top: 18px;
+            font-weight: bold;
+            color: #263b34;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 25px;
+            padding: 13px;
+            background: #126b48;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0c5036;
+        }
+
+        .success {
+            color: green;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .back {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #126b48;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>Farmer Registration</h2>
+
+    <p style="text-align:center;color:#666;">
+        Register your details in the Smart Irrigation System
+    </p>
+
+    <p class="success" th:if="${param.success}">
+        Farmer registered successfully!
+    </p>
+
+    <form th:action="@{/register}" th:object="${farmer}" method="post">
+
+        <label>Full Name</label>
+        <input type="text" th:field="*{fullName}" placeholder="Enter full name" required>
+
+        <label>Mobile Number</label>
+        <input type="tel" th:field="*{mobileNumber}"
+               placeholder="Enter mobile number"
+               pattern="[0-9]{10}" maxlength="10" required>
+
+        <label>Email Address</label>
+        <input type="email" th:field="*{email}" placeholder="Enter email address">
+
+        <label>Address</label>
+        <textarea th:field="*{address}" rows="3"
+                  placeholder="Enter your address"></textarea>
+
+        <button type="submit">Register Farmer</button>
+
+    </form>
+
+    <a class="back" th:href="@{/}">Back to Dashboard</a>
+
+</div>
+
+</body>
+</html>

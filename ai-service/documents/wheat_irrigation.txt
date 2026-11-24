@@ -1,0 +1,38 @@
+# Wheat Crop Irrigation Knowledge
+
+## 1. Introduction
+Wheat is an important cereal crop. It requires suitable soil moisture at different growth stages for healthy development and good grain production.
+
+## 2. Important Irrigation Stages
+
+### Crown Root Initiation (CRI)
+This is one of the most important irrigation stages. Water availability supports proper root development.
+
+### Tillering Stage
+Suitable soil moisture supports the development of additional shoots.
+
+### Jointing Stage
+Water is required for stem development and crop growth.
+
+### Flowering Stage
+Avoid water stress because it may affect grain formation.
+
+### Grain Filling Stage
+Adequate moisture supports grain development and improves grain quality.
+
+## 3. Factors Affecting Water Requirements
+- Soil type and water-holding capacity.
+- Temperature and weather conditions.
+- Rainfall availability.
+- Crop growth stage.
+- Irrigation method.
+
+## 4. Water Management
+- Irrigate according to soil moisture and crop requirements.
+- Consider rainfall before irrigation.
+- Avoid excessive watering.
+- Maintain proper drainage.
+- Use efficient irrigation methods where suitable.
+
+## 5. Benefits of Smart Irrigation
+Smart irrigation helps farmers identify suitable irrigation times, reduce unnecessary water usage, and manage available water efficiently.

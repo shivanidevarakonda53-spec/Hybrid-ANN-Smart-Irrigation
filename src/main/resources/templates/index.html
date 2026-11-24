@@ -1,0 +1,499 @@
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Smart Irrigation Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f7f6;
+            color: #1e293b;
+        }
+
+        .sidebar {
+            width: 240px;
+            height: 100vh;
+            background: #102a2a;
+            color: white;
+            position: fixed;
+            padding: 25px 18px;
+        }
+
+        .logo {
+            font-size: 21px;
+            font-weight: bold;
+            margin-bottom: 40px;
+            color: #4ade80;
+        }
+
+        .menu a {
+            display: block;
+            color: #cbd5d1;
+            text-decoration: none;
+            padding: 14px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+        }
+
+        .menu a:hover,
+        .menu a.active {
+            background: #176b45;
+            color: white;
+        }
+
+        .main {
+            margin-left: 240px;
+            padding: 30px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .topbar h1 {
+            font-size: 26px;
+        }
+
+        .profile {
+            background: white;
+            padding: 12px 18px;
+            border-radius: 10px;
+        }
+
+        .welcome {
+            background: linear-gradient(120deg, #176b45, #123b42);
+            color: white;
+            padding: 28px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+
+        .welcome h2 {
+            margin-bottom: 10px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 23px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #00000008;
+        }
+
+        .card p {
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+
+        .card h2 {
+            color: #176b45;
+            font-size: 27px;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .section h2 {
+            margin-bottom: 18px;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .recommendation {
+            background: #e9f8ef;
+            border-left: 5px solid #16a34a;
+        }
+
+        .recommendation h3 {
+            color: #176b45;
+            margin-bottom: 12px;
+        }
+
+        /* AI CHATBOT */
+
+        .chat-container {
+            background: white;
+            border-radius: 12px;
+            padding: 23px;
+            box-shadow: 0 3px 12px #00000008;
+        }
+
+        .chat-heading {
+            color: #176b45;
+            margin-bottom: 8px;
+        }
+
+        .chat-description {
+            color: #64748b;
+            margin-bottom: 18px;
+        }
+
+        .chat-messages {
+            height: 320px;
+            overflow-y: auto;
+            background: #f4f7f6;
+            padding: 18px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .message {
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            max-width: 85%;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .bot-message {
+            background: #e9f8ef;
+            color: #164e32;
+            margin-right: auto;
+        }
+
+        .user-message {
+            background: #176b45;
+            color: white;
+            margin-left: auto;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            padding: 14px;
+            border: 1px solid #cbd5d1;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .chat-input-area input:focus {
+            border-color: #176b45;
+        }
+
+        .chat-input-area button {
+            background: #176b45;
+            color: white;
+            border: none;
+            padding: 14px 22px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .chat-input-area button:hover {
+            background: #125638;
+        }
+
+        .chat-input-area button:disabled {
+            background: #94a3a0;
+            cursor: not-allowed;
+        }
+
+        .chat-status {
+            color: #64748b;
+            font-size: 13px;
+            margin-top: 12px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #64748b;
+        }
+
+        @media(max-width: 900px) {
+            .cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media(max-width: 600px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 18px;
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .topbar {
+                gap: 15px;
+                flex-wrap: wrap;
+            }
+
+            .chat-input-area {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <aside class="sidebar">
+
+        <div class="logo">🌱 Smart Irrigation</div>
+
+        <nav class="menu">
+            <a href="/" class="active">▣ Dashboard</a>
+            <a href="#">🌾 Field Management</a>
+            <a href="#">🧠 Irrigation Prediction</a>
+            <a href="#">🌦 Weather Monitoring</a>
+            <a href="#">💧 Water Analytics</a>
+            <a href="#">⚙ Settings</a>
+        </nav>
+
+    </aside>
+
+    <main class="main">
+
+        <div class="topbar">
+            <h1>Dashboard Overview</h1>
+            <div class="profile">👤 Farmer</div>
+        </div>
+
+        <section class="welcome">
+            <h2>Welcome to Smart Irrigation System!</h2>
+            <p>
+                Manage your agricultural fields and optimize
+                water usage with Hybrid Artificial Neural Networks.
+            </p>
+        </section>
+
+        <section class="cards">
+
+            <div class="card">
+                <p>Total Fields</p>
+                <h2>02</h2>
+            </div>
+
+            <div class="card">
+                <p>Soil Moisture</p>
+                <h2>65%</h2>
+            </div>
+
+            <div class="card">
+                <p>Temperature</p>
+                <h2>28°C</h2>
+            </div>
+
+            <div class="card">
+                <p>Rainfall</p>
+                <h2>12 mm</h2>
+            </div>
+
+        </section>
+
+        <section class="section">
+            <h2>Smart Irrigation Insights</h2>
+
+            <div class="content-grid">
+
+                <div class="card">
+                    <h3>Field Information</h3>
+                    <br>
+                    <p>Field Name: Demo Field 1</p>
+                    <p>Crop Type: Paddy</p>
+                    <p>Soil Type: Clay Soil</p>
+                    <p>Current Status: Monitoring</p>
+                </div>
+
+                <div class="card recommendation">
+                    <h3>🧠 AI Recommendation</h3>
+                    <p>Demo recommendation</p>
+                    <h2>Pending</h2>
+                    <br>
+                    <p>
+                        Actual irrigation quantity will be
+                        provided after ANN model integration.
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- AI FARMING ASSISTANT -->
+
+        <section class="section">
+
+            <h2>🌱 AI Farming Assistant</h2>
+
+            <div class="chat-container">
+
+                <h3 class="chat-heading">
+                    Ask Your Farming Questions
+                </h3>
+
+                <p class="chat-description">
+                    Get agricultural guidance about crops,
+                    soil moisture, irrigation and water management.
+                </p>
+
+                <div class="chat-messages" id="chatMessages">
+
+                    <div class="message bot-message">
+                        Hello! 👋 I am your AI Farming Assistant.
+                        Ask me anything about farming and irrigation.
+                    </div>
+
+                </div>
+
+                <form class="chat-input-area" id="chatForm">
+
+                    <input
+                        type="text"
+                        id="questionInput"
+                        placeholder="Ask your farming question..."
+                        required
+                    >
+
+                    <button type="submit" id="sendButton">
+                        Send
+                    </button>
+
+                </form>
+
+                <div class="chat-status" id="chatStatus">
+                    AI Assistant is ready.
+                </div>
+
+            </div>
+
+        </section>
+
+        <div class="footer">
+            Hybrid ANN-Based Smart Irrigation System | 2026
+        </div>
+
+    </main>
+
+    <script>
+
+        const chatForm = document.getElementById("chatForm");
+        const questionInput = document.getElementById("questionInput");
+        const chatMessages = document.getElementById("chatMessages");
+        const sendButton = document.getElementById("sendButton");
+        const chatStatus = document.getElementById("chatStatus");
+
+        function addMessage(message, type) {
+
+            const messageDiv = document.createElement("div");
+
+            messageDiv.classList.add("message", type);
+            messageDiv.textContent = message;
+
+            chatMessages.appendChild(messageDiv);
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        chatForm.addEventListener("submit", async function(event) {
+
+            event.preventDefault();
+
+            const question = questionInput.value.trim();
+
+            if (!question) {
+                return;
+            }
+
+            addMessage(question, "user-message");
+
+            questionInput.value = "";
+            sendButton.disabled = true;
+            sendButton.textContent = "Waiting...";
+            chatStatus.textContent = "AI is preparing your answer...";
+
+            try {
+
+                const response = await fetch("/api/chat", {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        question: question
+                    })
+
+                });
+
+                if (!response.ok) {
+                    throw new Error("Server error: " + response.status);
+                }
+
+                const data = await response.json();
+
+                addMessage(data.answer, "bot-message");
+
+                chatStatus.textContent = "AI Assistant is ready.";
+
+            } catch (error) {
+
+                addMessage(
+                    "Sorry, unable to connect to the AI service. Please try again.",
+                    "bot-message"
+                );
+
+                chatStatus.textContent = "Connection failed. Please try again.";
+
+                console.error(error);
+
+            } finally {
+
+                sendButton.disabled = false;
+                sendButton.textContent = "Send";
+                questionInput.focus();
+
+            }
+
+        });
+
+    </script>
+
+</body>
+</html>
+```

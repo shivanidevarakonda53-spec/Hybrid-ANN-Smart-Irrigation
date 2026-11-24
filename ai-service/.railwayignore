@@ -1,0 +1,10 @@
+@"
+ai-service/
+AI_Models/
+target/classes/
+target/generated-sources/
+target/maven-status/
+.git/
+.idea/
+.vscode/
+"@ | Set-Content -Path .railwayignore
